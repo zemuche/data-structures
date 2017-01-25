@@ -1,3 +1,6 @@
+import sys
+
+
 class Node:
     def __init__(self, item=None, position=0):
         self._item = item
@@ -93,18 +96,14 @@ class LinkedList:
 
     def __getslice(self, start, stop, step):
         res = UnorderedList()
-        if start is None:
-            start = 0
-        if stop is None:
-            stop = len(self)
-        if stop < 0:
-            stop += len(self)
-        if step is None:
-            step = 1
+        start = 0 if start is None else start
+        stop = len(self) if stop is None else stop
+        stop = stop + len(self) if stop < 0 else stop
+        step = 1 if step is None else step
         if step <= 0:
             if step == 0:
                 raise ValueError("slice step cannot be zero")
-            start, stop = stop - 1, start - 1
+            stop = -1 if stop == len(self) else stop
         for i in range(start, stop, step):
             res.append(self.__index(i))
         return res
@@ -293,12 +292,12 @@ class LinkedList:
         return new_head
 
     @staticmethod
-    def _index_correct(value):
+    def _index_correct(node):
         position = 0
-        while value is not None:
-            value.position = position
+        while node is not None:
+            node.position = position
+            node = node.next
             position += 1
-            value = value.next
 
 
 class CircularList:
@@ -516,6 +515,14 @@ class UnorderedList(LinkedList):
     def __init__(self, *args):
         LinkedList.__init__(self, *args)
 
+    def __setitem__(self, index, value):
+        index = index + len(self) if index < 0 else index
+        current = self.head
+        while current is not None:
+            if current.position == index:
+                current.item = value
+            current = current.next
+
     def add(self, item):
         """Add item to the beginning of linked list."""
         new_item = Node(item)
@@ -536,6 +543,7 @@ class UnorderedList(LinkedList):
             self.tail.next = new_item
             self.tail = new_item
         self.length += 1
+        super()._index_correct(self.head)
 
     def insert(self, pos, item):
         """Insert item to a given index of the linked list."""
@@ -544,8 +552,7 @@ class UnorderedList(LinkedList):
         elif pos == len(self):
             self.append(item)
         elif pos > len(self):
-            print("Position index out of range")
-            return
+            raise IndexError("index out of range")
         else:
             node = Node(item, pos)
             current = self.head
@@ -599,29 +606,13 @@ def dlist(other):
 
 
 def main():
-    from random import seed, randint
-    from string import ascii_letters
-    seed(1110)
-    # alphas = ascii_letters
     list0 = list(range(10))
     list1 = ulist(list0)
-    print(list1)
-    revlist1 = list1[::-1]
-    print(type(revlist1))
-    # list0 = (alphas[randint(0, len(alphas) + 1)] for _ in range(10))
-    # list2 = olist(list0)
-    # print("list1", list1, type(list1))
-    # print("list2", list2, type(list2))
-    #
-    # list3 = clist([1, 2, 3, 4])
-    # list4 = clist(range(20, 10, -1))
-    # print("list3", list3, type(list3))
-    # print("list4", list4, type(list4))
-    #
-    # list5 = dlist([1, 2, 3, 4])
-    # list6 = dlist(range(10))
-    # print("list5", list5, type(list5))
-    # print("list6", list6, type(list6))
+    print(list0, list1)
+    revlist0 = list0[3::-1]
+    revlist1 = list1[3::-1]
+    print(revlist0, revlist1)
+    print(sys.getsizeof(list0), sys.getsizeof(list1))
 
 
 if __name__ == "__main__":

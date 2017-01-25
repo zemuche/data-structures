@@ -2,7 +2,83 @@ from structures.stacks import Stack
 import operator as op
 
 
+class Tree:
+    """Abstract base class representing a tree structure."""
+
+    class Position:
+        """An abstraction representing the location of an item's location."""
+
+        def element(self):
+            """Return the element stored at this Position."""
+            raise NotImplementedError("must be implemented by subclass")
+
+        def __eq__(self, other):
+            """Return True if other Position represents the same location."""
+            raise NotImplementedError("must be implemented by subclass")
+
+        def __ne__(self, other):
+            """Return True if other does not represent the same location."""
+            return not (self == other)
+
+    def root(self):
+        """Return Position representing the trees root( or None if empty)."""
+        raise NotImplementedError("must be implemented by subclass")
+
+    def parent(self, p):
+        """Return Position representing p's parent (or None if p is root)."""
+        raise NotImplementedError("must be implemented by subclass")
+
+    def num_children(self, p):
+        """Return the number of children of Position p."""
+        raise NotImplementedError("must be implemented by subclass")
+
+    def children(self, p):
+        """Generate an iteration of Positions representing p's children."""
+        raise NotImplementedError("must be implemented by subclass")
+
+    def __len__(self):
+        """Return the total number of elements in the tree."""
+        raise NotImplementedError("must be implemented by subclass")
+
+    def is_root(self, p):
+        """Return True if Position p represents the root of the tree."""
+        return self.root() == p
+
+    def is_leaf(self, p):
+        """Return True if Position p does not have any children."""
+        return self.num_children(p) == 0
+
+    def is_empty(self):
+        """Return True if the tree is empty."""
+        return len(self) == 0
+
+    def depth(self, p):
+        """Return the number of levels separating Position p from the root."""
+        if self.is_root(p):
+            return 0
+        else:
+            return 1 + self.depth(self.parent(p))
+
+    def height(self, p=None):
+        """Return the height of the subtree rooted at Position p.
+        If p is None, return the height of the entire tree."""
+        if p is None:
+            p = self.root()
+        return self._height(p)
+
+    def _height(self, p):
+        """Return the height of the subtree rooted at Position p."""
+        if self.is_leaf(p):
+            return 0
+        else:
+            return 1 + max(self._height(c) for c in self.children(p))
+
+
 class BinaryTree:
+    pass
+
+
+class BinaryTreeTwo:
     def __init__(self, root):
         self.root = root
         self.left = None
@@ -13,9 +89,9 @@ class BinaryTree:
 
     def insert_left(self, new_node):
         if self.left is None:
-            self.left = BinaryTree(new_node)
+            self.left = BinaryTreeTwo(new_node)
         else:
-            t = BinaryTree(new_node)
+            t = BinaryTreeTwo(new_node)
             t.left = self.left
             self.left = t
 
@@ -24,9 +100,9 @@ class BinaryTree:
 
     def insert_right(self, new_node):
         if self.right is None:
-            self.right = BinaryTree(new_node)
+            self.right = BinaryTreeTwo(new_node)
         else:
-            t = BinaryTree(new_node)
+            t = BinaryTreeTwo(new_node)
             t.right = self.right
             self.right = t
 
@@ -42,42 +118,6 @@ class BinaryTree:
             self.get_left().preorder()
         if self.get_right():
             self.get_right().preorder()
-
-
-class ListTree:
-    def __init__(self, r):
-        self.tree = [r, [], []]
-
-    def __str__(self):
-        return str(self.tree)
-
-    def insert_left(self, new_branch):
-        t = self.tree.pop(1)
-        if len(t) > 1:
-            self.tree.insert(1, [new_branch, t, []])
-        else:
-            self.tree.insert(1, [new_branch, [], []])
-        return self.tree
-
-    def insert_right(self, new_branch):
-        t = self.tree.pop(2)
-        if len(t) > 1:
-            self.tree.insert(2, [new_branch, [], t])
-        else:
-            self.tree.insert(2, [new_branch, [], []])
-        return self.tree
-
-    def get_root(self):
-        return self.tree[0]
-
-    def set_root(self, value):
-        self.tree[0] = value
-
-    def get_left_child(self):
-        return self.tree[1]
-
-    def get_right_child(self):
-        return self.tree[2]
 
 
 class TreeNode:
@@ -295,9 +335,45 @@ class BinarySearchTree:
                                                    current_node.right.right)
 
 
+class ListTree:
+    def __init__(self, r):
+        self.tree = [r, [], []]
+
+    def __str__(self):
+        return str(self.tree)
+
+    def insert_left(self, new_branch):
+        t = self.tree.pop(1)
+        if len(t) > 1:
+            self.tree.insert(1, [new_branch, t, []])
+        else:
+            self.tree.insert(1, [new_branch, [], []])
+        return self.tree
+
+    def insert_right(self, new_branch):
+        t = self.tree.pop(2)
+        if len(t) > 1:
+            self.tree.insert(2, [new_branch, [], t])
+        else:
+            self.tree.insert(2, [new_branch, [], []])
+        return self.tree
+
+    def get_root(self):
+        return self.tree[0]
+
+    def set_root(self, value):
+        self.tree[0] = value
+
+    def get_left_child(self):
+        return self.tree[1]
+
+    def get_right_child(self):
+        return self.tree[2]
+
+
 def animal():
     # start with a singleton
-    root = BinaryTree("bird")
+    root = BinaryTreeTwo("bird")
 
     # loop until the user quits
     while True:
@@ -331,11 +407,11 @@ def animal():
         my_tree.set_cargo(question)
         prompt = "If the animal were %s the answer would be? "
         if yes(prompt % my_animal):
-            my_tree.set_left(BinaryTree(guess))
-            my_tree.set_right(BinaryTree(my_animal))
+            my_tree.set_left(BinaryTreeTwo(guess))
+            my_tree.set_right(BinaryTreeTwo(my_animal))
         else:
-            my_tree.set_left(BinaryTree(my_animal))
-            my_tree.set_right(BinaryTree(guess))
+            my_tree.set_left(BinaryTreeTwo(my_animal))
+            my_tree.set_right(BinaryTreeTwo(guess))
 
 
 def yes(ques):
@@ -346,7 +422,7 @@ def yes(ques):
 def build_parse_tree(expr):
     fplist = expr.split()
     s = Stack()
-    t = BinaryTree('')
+    t = BinaryTreeTwo('')
     s.push(t)
     current_t = t
     for i in fplist:
@@ -389,37 +465,39 @@ def preorder(tree):
 
 
 def post_order(tree):
+    output_list = []
     if tree is not None:
-        post_order(tree.get_left())
-        post_order(tree.get_right())
-        print(tree.get_root(), end=" ")
+        output_list.append(str(post_order(tree.get_left())))
+        output_list.append(str(post_order(tree.get_right())))
+        output_list.append(str(tree.get_root()))
+    return output_list
 
 
 def inorder(tree):
-    output = ''
+    output_list = []
     if tree is not None:
-        output += '(' + str(inorder(tree.get_left()))
-        output += str(tree.get_root())
-        output += str(inorder(tree.get_right())) + ')'
-    return output
+        output_list.append('(' + str(inorder(tree.get_left())))
+        output_list.append(str(tree.get_root()))
+        output_list.append(str(inorder(tree.get_right())) + ')')
+    return ''.join(output_list)
 
 
 def main():
     expression = "( ( 10 + 5 ) / 3 )"
     pt = build_parse_tree(expression)
     print(evaluate(pt))
-    print(inorder(pt))
+    print(post_order(pt))
 
-    bst = BinarySearchTree()
-    bst[3] = "red"
-    bst[4] = "blue"
-    bst[5] = "yellow"
-    bst[6] = "at"
-
-    print(bst[5])
-    print(bst[4])
-    del bst[4]
-    print(bst[4])
+    # bst = BinarySearchTree()
+    # bst[3] = "red"
+    # bst[4] = "blue"
+    # bst[5] = "yellow"
+    # bst[6] = "at"
+    #
+    # print(bst[5])
+    # print(bst[4])
+    # del bst[4]
+    # print(bst[4])
 
     # animal()
 
