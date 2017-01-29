@@ -36,15 +36,32 @@ class Node:
 
 
 class LinkedList:
+    """
+    Attributes:
+        length
+        head node
+        tail node
+    Methods:
+        isempty(): returns True if linked list is empty; False otherwise.
+        add(item): adds item to front of list, shifting everything to the end.
+        append(item): adds item to the end of the linked list.
+        insert(pos, item): inserts item to a given index of the linked list.
+        remove(item): removes given item from the linked list.
+        pop(): removes the last item of the linked list.
+        pop(i): removes item at index i; negative indices work.
+        index(item): returns the item at the given index.
+        find(item): returns the index of the give item.
+    """
+
     def __init__(self, *args):
+        self.mem_size = 0
         self.length = 0
         self.head = None
         self.tail = None
         self.extend(iter(args))
 
     def __repr__(self):
-        from copy import deepcopy
-        return '[' + ', '.join(str(n) for n in deepcopy(self)) + ']'
+        return '[' + ', '.join(str(n) for n in iter(self)) + ']'
 
     def __len__(self):
         return self.length
@@ -52,14 +69,12 @@ class LinkedList:
     def __iter__(self):
         current = self.head
         while current is not None:
-            yield current.item
+            yield current
             current = current.next
 
     def __reversed__(self):
-        import copy
-        new_list = copy.deepcopy(self)
-        new_list._reverse(new_list.head)
-        return ulist(new_list)
+        self._reverse(self.head)
+        return ulist(iter(self))
 
     def __getitem__(self, index):
         if isinstance(index, slice):
@@ -81,6 +96,9 @@ class LinkedList:
         except ValueError:
             raise ValueError("num must be an int")
         return self
+
+    def __sizeof__(self):
+        return self.mem_size
 
     def extend(self, other):
         if isinstance(self, UnorderedList):
@@ -104,6 +122,7 @@ class LinkedList:
             if step == 0:
                 raise ValueError("slice step cannot be zero")
             stop = -1 if stop == len(self) else stop
+            start = len(self) - 1 if start == 0 else start
         for i in range(start, stop, step):
             res.append(self.__index(i))
         return res
@@ -157,6 +176,12 @@ class LinkedList:
         self.length -= 1
         self._index_correct(self.head)
         return str(item) + " removed"
+
+    def popleft(self):
+        popped = self.head
+        self.head = popped.next
+        self.length -= 1
+        return popped
 
     def pop(self, position=None):
         """pop(): remove the last item of the linked list.
@@ -495,33 +520,19 @@ class DoublyList:
 
 
 class UnorderedList(LinkedList):
-    """
-    Attributes:
-        length
-        head node
-        tail node
-    Methods:
-        isempty(): returns True if linked list is empty; False otherwise.
-        add(item): adds item to front of list, shifting everything to the end.
-        append(item): adds item to the end of the linked list.
-        insert(pos, item): inserts item to a given index of the linked list.
-        remove(item): removes given item from the linked list.
-        pop(): removes the last item of the linked list.
-        pop(i): removes item at index i; negative indices work.
-        index(item): returns the item at the given index.
-        find(item): returns the index of the give item.
-    """
-
     def __init__(self, *args):
         LinkedList.__init__(self, *args)
 
     def __setitem__(self, index, value):
-        index = index + len(self) if index < 0 else index
-        current = self.head
-        while current is not None:
-            if current.position == index:
-                current.item = value
-            current = current.next
+        if isinstance(index, slice):
+            self._setslice(index.start, index.stop, value)
+        else:
+            index = index + len(self) if index < 0 else index
+            current = self.head
+            while current is not None:
+                if current.position == index:
+                    current.item = value
+                current = current.next
 
     def add(self, item):
         """Add item to the beginning of linked list."""
@@ -532,6 +543,7 @@ class UnorderedList(LinkedList):
         self._index_correct(self.head)
         if self.length == 1:
             self.tail = self.head
+        self.mem_size += sys.getsizeof(item)
 
     def append(self, item):
         """Add item to the end of the linked list."""
@@ -543,7 +555,8 @@ class UnorderedList(LinkedList):
             self.tail.next = new_item
             self.tail = new_item
         self.length += 1
-        super()._index_correct(self.head)
+        self._index_correct(self.head)
+        self.mem_size += sys.getsizeof(new_item)
 
     def insert(self, pos, item):
         """Insert item to a given index of the linked list."""
@@ -564,6 +577,25 @@ class UnorderedList(LinkedList):
             node.next = current
         self.length += 1
         self._index_correct(self.head)
+        self.mem_size += sys.getsizeof(item)
+
+    def _setslice(self, i, j, sequence):
+        i = 0 if i is None else i
+        i = i + len(self) if i < 0 else i
+        j = len(self) if j is None else j
+        j = j + len(self) if j < 0 else j
+        indices = list(range(i, j))
+        count = 0
+        current_index = 0
+        for index in indices:
+            self[index] = sequence[count]
+            current_index = index
+            count += 1
+        current_index += 1
+        while count < len(sequence):
+            self.insert(current_index, sequence[count])
+            current_index += 1
+            count += 1
 
 
 class OrderedList(LinkedList):
@@ -606,13 +638,30 @@ def dlist(other):
 
 
 def main():
-    list0 = list(range(10))
-    list1 = ulist(list0)
-    print(list0, list1)
-    revlist0 = list0[3::-1]
-    revlist1 = list1[3::-1]
+    n = 10
+
+    list0 = []
+    for i in range(n):
+        list0.append(i)
+    print(list0)
+
+    list1 = UnorderedList()
+    for i in range(n):
+        list1.append(i)
+    print(list1)
+
+    revlist0 = list0[::-1]
+    revlist1 = list1[::-1]
     print(revlist0, revlist1)
-    print(sys.getsizeof(list0), sys.getsizeof(list1))
+
+    list0[5:7] = [11, 12, 13, 14, 15]
+    list1[5:7] = [11, 12, 13, 14, 15]
+    print(list0)
+    print(list1)
+
+    # print(sys.getsizeof(list0), sys.getsizeof(list1))
+    # for a, b in zip(list0, list1):
+    #     print(sys.getsizeof(a), sys.getsizeof(b))
 
 
 if __name__ == "__main__":
