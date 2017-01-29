@@ -1,4 +1,4 @@
-from structures.linked_lists import UnorderedList
+from structures.linked_lists import UnorderedList, Node
 
 
 class Queue:
@@ -72,13 +72,13 @@ class LinkedQueue:
         """Remove and return the first element of the queue."""
         if self.isempty():
             raise ValueError("dequeue from empty queue")
-        return self.items.pop(0)
+        return self.items.popleft()
 
     def peek(self):
         """Return the first item in the queue without removing it."""
         if self.isempty():
             raise ValueError("peek from empty queue")
-        return self.items.__index(0)
+        return self.items[0]
 
 
 class CircularQueue:
@@ -132,7 +132,7 @@ class CircularQueue:
 
     def peek(self):
         if self.is_empty():
-            return "List is empty"
+            return "Queue is empty"
         return self._tail.next
 
 
@@ -204,7 +204,7 @@ def main():
     print(cq)
     cq.rotate()
     print(cq)
-    print(cq.dequeue())
+    print(cq.peek())
     print(cq.dequeue())
     print(cq.dequeue())
     print(cq.dequeue())
